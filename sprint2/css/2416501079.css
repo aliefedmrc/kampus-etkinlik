@@ -1,0 +1,190 @@
+/* AliEfe Demirci — 2416501079 */
+
+:root {
+  --no: 2416501079;
+  --ton: mod(var(--no), 360);
+  --renk-ana: hsl(var(--ton) 65% 38%);
+  --renk-zemin: hsl(var(--ton) 30% 97%);
+  --font: "Lucida Console", monospace;
+  --bosluk-m: 1rem;
+  --kose: 8px;
+}
+
+body {
+  font-family: var(--font);
+  background-color: var(--renk-zemin);
+}
+
+h1 {
+  color: var(--renk-ana);
+}
+
+.etkinlik-kartlari {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--bosluk-m);
+}
+
+.etkinlik-karti {
+  border: 1px solid var(--renk-ana);
+  border-radius: var(--kose);
+  padding: var(--bosluk-m);
+}
+
+@media (min-width: 768px) {
+  .etkinlik-kartlari {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .tum-etkinlikler {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.etkinlik-detayi {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--bosluk-m);
+  align-items: start;
+}
+
+.etkinlik-detayi figure {
+  margin: 0;
+}
+
+.etkinlik-detayi img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+.detay-bilgileri {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.detay-bilgileri dl {
+  display: grid;
+  gap: var(--bosluk-m);
+}
+
+.detay-bilgileri dt {
+  font-weight: bold;
+}
+
+.detay-bilgileri dd {
+  margin: 0;
+}
+
+@media (min-width: 768px) {
+  .etkinlik-detayi {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .detay-bilgileri dl {
+    grid-template-columns: max-content minmax(0, 1fr);
+  }
+}
+/* Ortak sayfa düzeni */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: var(--bosluk-m);
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+header,
+nav,
+main,
+footer {
+  max-width: 1100px;
+  margin-inline: auto;
+}
+
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--bosluk-m);
+  margin-block: var(--bosluk-m);
+}
+
+nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+
+a {
+  color: var(--renk-ana);
+}
+
+main,
+footer {
+  padding-block: var(--bosluk-m);
+}
+
+/* Ekleme ve güncelleme formları */
+:root {
+  --renk-alan: hsl(var(--ton) 30% 100%);
+  --renk-hata: hsl(0 75% 40%);
+}
+
+.etkinlik-formu {
+  max-width: 640px;
+}
+
+.etkinlik-formu label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: calc(var(--bosluk-m) / 2);
+}
+
+.etkinlik-formu br {
+  display: none;
+}
+
+.etkinlik-formu input,
+.etkinlik-formu select,
+.etkinlik-formu textarea {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: calc(var(--bosluk-m) / 2);
+  font: inherit;
+  color: inherit;
+  background-color: var(--renk-alan);
+  border: 1px solid var(--renk-ana);
+  border-radius: var(--kose);
+}
+
+.etkinlik-formu textarea {
+  resize: vertical;
+}
+
+.etkinlik-formu :required:invalid {
+  border: 2px solid var(--renk-hata);
+}
+
+.etkinlik-formu button {
+  min-height: 44px;
+  padding: calc(var(--bosluk-m) / 2) var(--bosluk-m);
+  margin-bottom: calc(var(--bosluk-m) / 2);
+  font: inherit;
+  color: var(--renk-alan);
+  background-color: var(--renk-ana);
+  border: 1px solid var(--renk-ana);
+  border-radius: var(--kose);
+  cursor: pointer;
+}
+
+.etkinlik-formu :focus-visible,
+a:focus-visible {
+  outline: 3px solid var(--renk-ana);
+  outline-offset: 3px;
+}
