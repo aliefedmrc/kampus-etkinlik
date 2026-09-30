@@ -1,21 +1,21 @@
-# Kampüs Etkinlikleri — Sprint 1
+# Kampüs Etkinlikleri — Sprint 2
 
-Kampüs içindeki seminer, atölye ve söyleşilerin listelendiği, detaylarının görüntülendiği
-ve yeni etkinlik eklenip güncellenebildiği web uygulamasının **HTML iskeleti**.
+- Öğrenci: Ali Efe Demirci
+- Öğrenci numarası: 2416501079
+- Ders: Web Teknolojileri ve Programlama
+- Sprint: 2 — CSS ve Responsive
+- Canlı adres: https://kampus-etkinlik-sprint2-rho.vercel.app/
 
-- **Öğrenci:** Ad Soyad — 20xxxxxxx
-- **Ders:** Web Teknolojileri ve Programlama, Sprint 1 (HTML ve Git)
-- **Canlı adres:** [https://kampus-etkinlik-navy.vercel.app](https://kampus-etkinlik-navy.vercel.app)
+## Sayfalar
 
-## Bu sprintte tamamlanan sayfalar
+- index.html: Yaklaşan iki etkinlik.
+- etkinlikler.html: Tüm etkinliklerin kartlarla listelenmesi.
+- etkinlik-detay.html: Etkinlik afişi, künyesi, açıklaması ve programı.
+- etkinlik-ekle.html: Yeni etkinlik formu.
+- etkinlik-guncelle.html: Bilgileri önceden doldurulmuş güncelleme formu.
 
+## CSS
 
-| Dosya                            | İçerik                                                                    |
-| -------------------------------- | ------------------------------------------------------------------------- |
-| `sprint1/index.html`             | Uygulamanın tanıtımı, yaklaşan iki etkinlik, diğer sayfalara bağlantılar  |
-| `sprint1/etkinlikler.html`       | Etkinlik listesi (her etkinlik bir hücre) ve "Ayın Programı" özet tablosu |
-| `sprint1/etkinlik-detay.html`    | Tek etkinliğin afişi, künyesi, açıklaması ve gün içi programı             |
-| `sprint1/etkinlik-ekle.html`     | Yeni etkinlik formu (ad, kategori, tarih, saat, yer, kontenjan, açıklama) |
-| `sprint1/etkinlik-guncelle.html` | Aynı form, alanlar `value` ile dolu; buton "Güncelle"                     |
-
-
+Tüm sayfalar css/2416501079.css dosyasını kullanır.
+Kartlar ve etkinlik detayı ekran genişliğine göre düzenlenir.
+Formlar bu sprintte veri kaydetmez veya güncellemez.
