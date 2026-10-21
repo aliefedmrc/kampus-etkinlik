@@ -15,7 +15,6 @@ import EventList from "./components/events/EventList";
 import EventFilter from "./components/events/EventFilter";
 import EventDetail from "./components/events/EventDetail";
 import EventForm from "./components/forms/EventForm";
-
 const basliklar: Record<PageName, string> = {
   home: "Kampüs Etkinlikleri",
   events: "Etkinlik Listesi",
@@ -29,7 +28,6 @@ function App() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [searchText, setSearchText] = useState("");
   const [category, setCategory] = useState<Category | "">("");
-
   const categories = [...new Set(events.map(event => event.category))];
   const filtered = filterByCategory(searchEvents(events, searchText), category);
   const selected = selectedId ? findEventById(events, selectedId) : undefined;
@@ -45,12 +43,10 @@ function App() {
   useEffect(() => {
     document.title = `Kampüs Etkinlikleri — ${title}`;
   }, [title]);
-
   function go(next: PageName, id: string | null = null) {
     setPage(next);
     setSelectedId(id);
   }
-
   return (
     <>
       <Header
@@ -130,5 +126,4 @@ function App() {
     </>
   );
 }
-
 export default App;
