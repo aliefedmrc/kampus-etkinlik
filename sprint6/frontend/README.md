@@ -33,15 +33,4 @@ Windows PowerShell yürütme ilkesi npm'i engellerse aynı komutlarda `npm.cmd` 
 Etkinlik değişiklikleri aynı oturumda tüm sayfalara yansır. Tarayıcı yenilenince örnek etkinlikler geri gelir. Hesap formları demo olarak doğrulama ve sonuç mesajı gösterir. Yönetim sayfası doğrudan açılabilir.
 
 ## Vercel ve teslim
-
-Vercel kök dizinini `frontend` olarak seçin. Hedef proje adı `aliefedemirci-frontend`. Yayından sonra doğrulanmış canlı adresi bu bölüme ekleyin. Kök dizininde arşivin içindeki `frontend` klasörü zaten açılmışsa Vercel kökü olarak mevcut dizini kullanın.
-
-Yayın ve README güncellemesi sonrası, mevcut Git deposunun kökünde teslim commit'ini oluşturun.
-
-```bash
-git add .
-git commit -m "Complete sprint 6 and midterm frontend"
-git tag frontend
-git push
-git push origin frontend
-```
+**Canlı site:** [aliefedemirci-frontend.vercel.app](https://aliefedemirci-frontend.vercel.app/)
