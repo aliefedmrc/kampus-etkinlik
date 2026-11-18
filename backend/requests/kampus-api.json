@@ -1,7 +1,7 @@
 {
   "info": {
-    "name": "Kampüs API — Sprint 7 (2416501079)",
-    "description": "Sprint 7'nin 6 zorunlu isteği; localhost:3000, beklenen 200/200/200/404/201/400. İsteğe bağlı GET filtreleri: ?minCapacity=50, ?mode=online.",
+    "name": "Kampüs API — Sprint 8 (2416501079)",
+    "description": "Seed sonrası sırayla çalıştır. Liste isteği detay isteği için MongoDB kimliğini kaydeder.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -61,7 +61,10 @@
             "type": "text/javascript",
             "exec": [
               "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
-              "pm.test(\"6 etkinlik\", function () { pm.expect(pm.response.json()).to.be.an(\"array\").with.lengthOf(6); });"
+              "pm.test(\"6 etkinlik\", function () { pm.expect(pm.response.json()).to.be.an(\"array\").with.lengthOf(6); });",
+              "const events = pm.response.json();",
+              "pm.test(\"MongoDB alanları\", function () { events.forEach(event => { pm.expect(event._id).to.match(/^[a-f0-9]{24}$/); pm.expect(event).to.have.property(\"createdAt\"); pm.expect(event).to.have.property(\"updatedAt\"); }); });",
+              "if (Array.isArray(events) && events[0]?._id) pm.collectionVariables.set(\"eventId\", events[0]._id);"
             ]
           }
         }
@@ -73,7 +76,7 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "http://localhost:3000/events/event-2",
+          "raw": "http://localhost:3000/events/{{eventId}}",
           "protocol": "http",
           "host": [
             "localhost"
@@ -81,7 +84,7 @@
           "port": "3000",
           "path": [
             "events",
-            "event-2"
+            "{{eventId}}"
           ]
         }
       },
@@ -93,7 +96,7 @@
             "type": "text/javascript",
             "exec": [
               "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
-              "pm.test(\"event-2\", function () { pm.expect(pm.response.json().id).to.eql(\"event-2\"); });"
+              "pm.test(\"Listedeki etkinlik\", function () { pm.expect(pm.response.json()._id).to.eql(pm.collectionVariables.get(\"eventId\")); });"
             ]
           }
         }
@@ -171,7 +174,7 @@
             "type": "text/javascript",
             "exec": [
               "pm.test(\"HTTP 201\", function () { pm.response.to.have.status(201); });",
-              "pm.test(\"yeni id olustu\", function () { pm.expect(pm.response.json().id).to.match(/^event-\\d+$/); });"
+              "pm.test(\"MongoDB kaydı\", function () { const event = pm.response.json(); pm.expect(event._id).to.match(/^[a-f0-9]{24}$/); pm.expect(event).to.have.property(\"createdAt\"); });"
             ]
           }
         }
@@ -217,11 +220,17 @@
             "type": "text/javascript",
             "exec": [
               "pm.test(\"HTTP 400\", function () { pm.response.to.have.status(400); });",
-              "pm.test(\"eksik alan hatasi\", function () { pm.expect(pm.response.json().error.message).to.eql(\"title, category and date are required\"); });"
+              "pm.test(\"Şema doğrulama hatası\", function () { pm.expect(pm.response.json().error.message).to.be.a(\"string\"); });"
             ]
           }
         }
       ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "eventId",
+      "value": ""
     }
   ]
 }

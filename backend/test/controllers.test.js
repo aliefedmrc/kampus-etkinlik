@@ -1,6 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { events } from "../src/data/events.js";
+import mongoose from "mongoose";
+import { seedEvents } from "../src/data/seed-events.js";
+import { Event } from "../src/models/event-model.js";
 import { getEvents, getEventById, createEvent } from "../src/controllers/event-controller.js";
 
 function mockResponse() {
@@ -12,113 +14,87 @@ function mockResponse() {
   };
 }
 
-test("GET /events: 6 kayit", () => {
-  const res = mockResponse();
-  getEvents({ query: {} }, res);
-  assert.equal(res.statusCode, 200);
-  assert.equal(res.payload.length, 6);
-  assert.equal(res.payload[1].id, "event-2");
+const modelEvents = seedEvents.map((data) => new Event(data));
+
+for (const [query, filter, expected] of [
+  [{}, {}, modelEvents],
+  [{ category: "Atölye" }, { category: "Atölye" }, [modelEvents[1], modelEvents[2]]],
+  [{ minCapacity: "50" }, { capacity: { $gte: 50 } }, [modelEvents[0], modelEvents[3], modelEvents[4]]],
+  [{ mode: "online" }, { mode: "online" }, [modelEvents[4]]],
+  [{ mode: "hibrit", minCapacity: "50" }, { mode: "hibrit", capacity: { $gte: 50 } }, [modelEvents[3]]],
+  [{ q: "SENSÖR" }, {}, [modelEvents[1]]],
+  [{ q: "olmayan" }, {}, []],
+]) {
+  test(`GET /events: ${JSON.stringify(query)}`, async (t) => {
+    const candidates = Object.keys(filter).length ? expected : modelEvents;
+    t.mock.method(Event, "find", (actualFilter) => {
+      assert.deepEqual(actualFilter, filter);
+      return {
+        sort(specification) {
+          assert.deepEqual(specification, { date: 1 });
+          return Promise.resolve(candidates);
+        },
+      };
+    });
+
+    const res = mockResponse();
+    await getEvents({ query }, res, assert.ifError);
+    assert.equal(res.statusCode, 200);
+    assert.deepEqual(res.payload, expected);
+  });
+}
+
+for (const query of [{ minCapacity: "abc" }, { mode: "bilinmiyor" }]) {
+  test(`GET /events: geçersiz filtre ${JSON.stringify(query)}`, async (t) => {
+    const find = t.mock.method(Event, "find");
+    const res = mockResponse();
+    await getEvents({ query }, res, assert.ifError);
+    assert.equal(res.statusCode, 400);
+    assert.equal(find.mock.callCount(), 0);
+  });
+}
+
+test("GET /events/:id: gerçek, bulunamayan ve geçersiz kimlikler", async (t) => {
+  const event = modelEvents[1];
+  const findById = t.mock.method(Event, "findById", async (id) =>
+    id === event._id.toString() ? event : null,
+  );
+
+  const found = mockResponse();
+  await getEventById({ params: { id: event._id.toString() } }, found, assert.ifError);
+  assert.equal(found.payload, event);
+
+  for (const id of [new mongoose.Types.ObjectId().toString(), "yok", "event-2"]) {
+    const missing = mockResponse();
+    await getEventById({ params: { id } }, missing, assert.ifError);
+    assert.equal(missing.statusCode, 404);
+    assert.equal(missing.payload.error.message, "Event not found");
+  }
+  assert.equal(findById.mock.callCount(), 2);
 });
 
-test("GET /events?category=Atölye: filtre", () => {
-  const res = mockResponse();
-  getEvents({ query: { category: "Atölye" } }, res);
-  assert.ok(res.payload.length > 0);
-  assert.ok(res.payload.every((event) => event.category === "Atölye"));
-});
+test("POST /events: şema alanlarını doğrular ve varsayılan değerleri uygular", async (t) => {
+  t.mock.method(Event, "create", async (data) => {
+    const event = new Event(data);
+    await event.validate();
+    return event;
+  });
 
-test("GET /events/event-2: 200", () => {
-  const res = mockResponse();
-  getEventById({ params: { id: "event-2" } }, res);
-  assert.equal(res.statusCode, 200);
-  assert.equal(res.payload.id, "event-2");
-});
+  const valid = { title: "  Test Etkinliği  ", category: "Atölye", date: "2026-12-30" };
+  for (const mode of [undefined, "online"]) {
+    const res = mockResponse();
+    await createEvent({ body: { ...valid, mode } }, res, assert.ifError);
+    assert.equal(res.statusCode, 201);
+    assert.match(res.payload._id.toString(), /^[a-f0-9]{24}$/);
+    assert.equal(res.payload.title, "Test Etkinliği");
+    assert.equal(res.payload.capacity, 0);
+    assert.equal(res.payload.mode, mode ?? "yuz-yuze");
+  }
 
-test("GET /events/yok: 404", () => {
-  const res = mockResponse();
-  getEventById({ params: { id: "yok" } }, res);
-  assert.equal(res.statusCode, 404);
-  assert.equal(res.payload.error.message, "Event not found");
-});
-
-
-
-test("GET /events?minCapacity=50: en az 50 kontenjan", () => {
-  const res = mockResponse();
-  getEvents({ query: { minCapacity: "50" } }, res);
-  assert.equal(res.statusCode, 200);
-  assert.deepEqual(res.payload.map((event) => event.id), ["event-1", "event-4", "event-5"]);
-  assert.ok(res.payload.every((event) => event.capacity >= 50));
-});
-
-test("GET /events?mode=online: çevrim içi etkinlik", () => {
-  const res = mockResponse();
-  getEvents({ query: { mode: "online" } }, res);
-  assert.equal(res.statusCode, 200);
-  assert.deepEqual(res.payload.map((event) => event.id), ["event-5"]);
-});
-
-test("GET /events?mode=hibrit&minCapacity=50: birleşik filtre", () => {
-  const res = mockResponse();
-  getEvents({ query: { mode: "hibrit", minCapacity: "50" } }, res);
-  assert.deepEqual(res.payload.map((event) => event.id), ["event-4"]);
-});
-
-test("GET /events?minCapacity=abc: geçersiz eşik 400", () => {
-  const res = mockResponse();
-  getEvents({ query: { minCapacity: "abc" } }, res);
-  assert.equal(res.statusCode, 400);
-  assert.ok(res.payload.error.message.includes("minCapacity"));
-});
-
-test("GET /events?mode=bilinmiyor: geçersiz tür 400", () => {
-  const res = mockResponse();
-  getEvents({ query: { mode: "bilinmiyor" } }, res);
-  assert.equal(res.statusCode, 400);
-  assert.ok(res.payload.error.message.includes("mode"));
-});
-
-test("POST /events: 201 ve yeni kayit", () => {
-  const res = mockResponse();
-  createEvent({ body: {
-    title: "Test", category: "Atölye", date: "2026-12-30", capacity: 30,
-  } }, res);
-  assert.equal(res.statusCode, 201);
-  assert.match(res.payload.id, /^event-\d+$/);
-  assert.equal(events.length, 7);
-  assert.equal(res.payload.capacity, 30);
-  assert.equal(res.payload.mode, "yuz-yuze");
-});
-
-test("POST /events: eksik alan 400", () => {
-  const res = mockResponse();
-  createEvent({ body: { title: "Eksik" } }, res);
-  assert.equal(res.statusCode, 400);
-  assert.equal(res.payload.error.message, "title, category and date are required");
-  assert.equal(events.length, 7);
-});
-
-test("GET /events?q=sensör: özgün başlık araması", () => {
-  const res = mockResponse();
-  getEvents({ query: { q: "SENSÖR" } }, res);
-  assert.equal(res.statusCode, 200);
-  assert.equal(res.payload.length, 1);
-  assert.equal(res.payload[0].id, "event-2");
-});
-
-test("GET /events?q=olmayan: boş dizi", () => {
-  const res = mockResponse();
-  getEvents({ query: { q: "Olmayan-Bir-Etkinlik" } }, res);
-  assert.equal(res.statusCode, 200);
-  assert.deepEqual(res.payload, []);
-});
-
-
-test("POST /events: özel etkinlik türünü kabul et", () => {
-  const res = mockResponse();
-  createEvent({ body: {
-    title: "Uzaktan Workshop", category: "Atölye", date: "2026-12-31", mode: "online",
-  } }, res);
-  assert.equal(res.statusCode, 201);
-  assert.equal(res.payload.mode, "online");
+  for (const body of [{ title: "Eksik" }, { ...valid, category: "Parti" }, { ...valid, title: "X" }]) {
+    const invalid = mockResponse();
+    await createEvent({ body }, invalid, assert.ifError);
+    assert.equal(invalid.statusCode, 400);
+    assert.ok(invalid.payload.error.message);
+  }
 });
