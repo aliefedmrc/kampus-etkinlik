@@ -24,6 +24,9 @@ for (const [query, filter, expected] of [
   [{ mode: "hibrit", minCapacity: "50" }, { mode: "hibrit", capacity: { $gte: 50 } }, [modelEvents[3]]],
   [{ q: "SENSÖR" }, {}, [modelEvents[1]]],
   [{ q: "olmayan" }, {}, []],
+  [{ search: "Atölye (1).*", category: "Atölye" }, {
+    category: "Atölye", title: { $regex: "Atölye \\(1\\)\\.\\*", $options: "i" },
+  }, []],
 ]) {
   test(`GET /events: ${JSON.stringify(query)}`, async (t) => {
     const candidates = Object.keys(filter).length ? expected : modelEvents;
@@ -44,7 +47,7 @@ for (const [query, filter, expected] of [
   });
 }
 
-for (const query of [{ minCapacity: "abc" }, { mode: "bilinmiyor" }]) {
+for (const query of [{ minCapacity: "abc" }, { mode: "bilinmiyor" }, { search: ["a", "b"] }]) {
   test(`GET /events: geçersiz filtre ${JSON.stringify(query)}`, async (t) => {
     const find = t.mock.method(Event, "find");
     const res = mockResponse();
@@ -80,7 +83,7 @@ test("POST /events: şema alanlarını doğrular ve varsayılan değerleri uygul
     return event;
   });
 
-  const valid = { title: "  Test Etkinliği  ", category: "Atölye", date: "2026-12-30" };
+  const valid = { title: "  Test Etkinliği  ", category: "Atölye", date: "30-12-2026" };
   for (const mode of [undefined, "online"]) {
     const res = mockResponse();
     await createEvent({ body: { ...valid, mode } }, res, assert.ifError);
@@ -91,7 +94,10 @@ test("POST /events: şema alanlarını doğrular ve varsayılan değerleri uygul
     assert.equal(res.payload.mode, mode ?? "yuz-yuze");
   }
 
-  for (const body of [{ title: "Eksik" }, { ...valid, category: "Parti" }, { ...valid, title: "X" }]) {
+  for (const body of [
+    { title: "Eksik" }, { ...valid, category: "Parti" }, { ...valid, title: "X" },
+    { ...valid, date: "2026-12-30" }, { ...valid, date: "31-02-2026" },
+  ]) {
     const invalid = mockResponse();
     await createEvent({ body }, invalid, assert.ifError);
     assert.equal(invalid.statusCode, 400);
